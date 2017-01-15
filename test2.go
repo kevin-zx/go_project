@@ -55,7 +55,7 @@ func main() {
 		}
 		println(dir + "/")
 		println(path)
-		genpic(path, strings.Replace(path, dir+"/", *dstPath, 1))
+		genpic(path, strings.Replace(path, dir, *dstPath, 1))
 		return nil
 	})
 	// Read the font data.
