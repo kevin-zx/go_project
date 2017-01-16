@@ -17,11 +17,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	// "bufio"
+	// "strings"
 	"time"
+	. "github.com/hunterhug/go_image"
 )
 
 func getRandom(max int) int {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	time.Sleep(1*time.Millisecond)
 	return r.Intn(max)
 }
 
@@ -42,9 +46,41 @@ var (
 )
 
 func main() {
+	fileName:="data/config.txt"
+	f, err := os.Open(fileName)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer f.Close()
+	arra := [7]string{}
+	buf := bufio.NewReader(f)
+	// defer buf.Close()
+	i := 0
+	for {
+
+		line, err := buf.ReadString('\n')
+		
+		if err != nil {
+			break
+		}
+		line = strings.TrimSpace(line) 
+		println(line)
+		arra[i] = line
+		i=i+1
+	}
+	jindu    = &arra[0]
+	weidu    = &arra[1]
+	times    = &arra[2]
+	addr     = &arra[3]
+	IMSI     = &arra[4]
+	srcPath  = &arra[5]
+	dstPath  = &arra[6]
+
 	flag.Parse()
 	path := *srcPath
 	dir := ""
+	
 	filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
 			return err
@@ -53,13 +89,17 @@ func main() {
 			dir = path
 			return nil
 		}
-		println(dir + "/")
+		println(dir )
 		println(path)
+		println(*dstPath)
+		err = ThumbnailF2F(path, path, 600,800)
+		if err != nil{
+			fmt.Println(err)
+		}
+		println(strings.Replace(path, dir, *dstPath, 1))
 		genpic(path, strings.Replace(path, dir, *dstPath, 1))
 		return nil
 	})
-	// Read the font data.
-
 }
 
 func genpic(picPath string, dstPath string) {
@@ -86,13 +126,12 @@ func genpic(picPath string, dstPath string) {
 	imgb, _ := os.Open(picPath)
 	imgddd, _ := jpeg.Decode(imgb)
 	defer imgb.Close()
-
-	fg, _ := image.NewUniform(color.RGBA{uint8(206), uint8(139), uint8(16), 255}), image.White
+	fg, _ := image.NewUniform(color.RGBA{uint8(240), uint8(102), uint8(5), 255}), image.White
 	if *wonb {
 		fg, _ = image.White, image.NewUniform(color.RGBA{uint8(0), uint8(0), uint8(0), 255})
 	}
 	// fmt.Println(imgddd.Bounds().Dx())
-	rgba := image.NewRGBA(image.Rect(0, 0, imgddd.Bounds().Dx(), imgddd.Bounds().Dy()))
+	rgba := image.NewRGBA(image.Rect(0, 0,600, 800))
 	draw.Draw(rgba, rgba.Bounds(), imgddd, image.ZP, draw.Src)
 	c := freetype.NewContext()
 

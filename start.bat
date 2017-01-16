@@ -1,0 +1,1 @@
+go run test2.go -jindu="117.350" -weidu="30.294" -time="2017-01-13 12:" -addr="站点:AHCZ34/高坦吴角" -IMSI="IMSI:460078157306249" -src="data/21/" -dst="data\21r\"

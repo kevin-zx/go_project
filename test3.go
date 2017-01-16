@@ -2,15 +2,35 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
+	"bufio"
+	// "io"
+	"os"
+	"strings"
+	
 )
 
 func main() {
-	s := "2" + 1
-	// fmt.Println(s)
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < 10; i++ {
-		fmt.Println(r.Intn(10))
+	fileName:="data/config.txt"
+	f, err := os.Open(fileName)
+
+	if err != nil {
+		fmt.Println(err)
 	}
+	defer f.Close()
+	arra := [7]string{}
+	buf := bufio.NewReader(f)
+	// defer buf.Close()
+	i := 0
+	for {
+
+		line, err := buf.ReadString('\n')
+		
+		if err != nil {
+			break
+		}
+		line = strings.TrimSpace(line) 
+		arra[i] = line
+		i=i+1
+	}
+
 }
