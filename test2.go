@@ -21,6 +21,7 @@ import (
 	// "strings"
 	"time"
 	. "github.com/hunterhug/go_image"
+	// "math"
 )
 
 func getRandom(max int) int {
@@ -33,7 +34,7 @@ var (
 	dpi      = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
 	fontfile = flag.String("fontfile", "tt1.TTF", "filename of the ttf font")
 	hinting  = flag.String("hinting", "none", "none | full")
-	size     = flag.Float64("size", 16, "font size in points")
+	size     = flag.Float64("size", 20, "font size in points")
 	spacing  = flag.Float64("spacing", 1.5, "line spacing (e.g. 2 means double spaced)")
 	wonb     = flag.Bool("whiteonblack", false, "white text on a black background")
 	jindu    = flag.String("jindu", "117.350", "usage")
@@ -41,19 +42,20 @@ var (
 	times    = flag.String("time", "2017-01-13 12:", "usage")
 	addr     = flag.String("addr", "站点:AHCZ34/池州高坦吴角", "usage")
 	IMSI     = flag.String("IMSI", "IMSI:460078157306249", "usage")
+	phone = flag.String("phone", "13912649654", "usage")
 	srcPath  = flag.String("src", "data/rawpic/", "usage")
 	dstPath  = flag.String("dst", "data/repic/", "usage")
 )
 
 func main() {
-	fileName:="data/config.txt"
+	fileName:="data/config.conf"
 	f, err := os.Open(fileName)
 
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer f.Close()
-	arra := [7]string{}
+	arra := [8]string{}
 	buf := bufio.NewReader(f)
 	// defer buf.Close()
 	i := 0
@@ -65,17 +67,18 @@ func main() {
 			break
 		}
 		line = strings.TrimSpace(line) 
-		println(line)
+		// println(line)
 		arra[i] = line
 		i=i+1
 	}
 	jindu    = &arra[0]
 	weidu    = &arra[1]
 	times    = &arra[2]
-	addr     = &arra[3]
-	IMSI     = &arra[4]
-	srcPath  = &arra[5]
-	dstPath  = &arra[6]
+	phone    = &arra[3]
+	addr     = &arra[4]
+	IMSI     = &arra[5]
+	srcPath  = &arra[6]
+	dstPath  = &arra[7]
 
 	flag.Parse()
 	path := *srcPath
@@ -89,14 +92,14 @@ func main() {
 			dir = path
 			return nil
 		}
-		println(dir )
-		println(path)
-		println(*dstPath)
+		// println(dir )
+		// println(path)
+		// println(*dstPath)
 		err = ThumbnailF2F(path, path, 600,800)
 		if err != nil{
 			fmt.Println(err)
 		}
-		println(strings.Replace(path, dir, *dstPath, 1))
+		// println(strings.Replace(path, dir, *dstPath, 1))
 		genpic(path, strings.Replace(path, dir, *dstPath, 1))
 		return nil
 	})
@@ -108,9 +111,12 @@ func genpic(picPath string, dstPath string) {
 		fmt.Sprintf("维度:%s%d%d%d", *weidu, getRandom(10), getRandom(10), getRandom(10)),
 		fmt.Sprintf("方位角:%d", getRandom(360)),
 		fmt.Sprintf("%s%d%d", *times, getRandom(6), getRandom(10)),
+		*phone,
 		*addr,
 		*IMSI,
 	}
+	// println(*jindu)
+	// println(text[0])
 	fontBytes, err := ioutil.ReadFile(*fontfile)
 	if err != nil {
 		log.Println(err)
@@ -124,7 +130,10 @@ func genpic(picPath string, dstPath string) {
 
 	// Initialize the context.
 	imgb, _ := os.Open(picPath)
-	imgddd, _ := jpeg.Decode(imgb)
+	imgddd, err := jpeg.Decode(imgb)
+	if err != nil {
+		return
+	}
 	defer imgb.Close()
 	fg, _ := image.NewUniform(color.RGBA{uint8(240), uint8(102), uint8(5), 255}), image.White
 	if *wonb {
@@ -132,6 +141,7 @@ func genpic(picPath string, dstPath string) {
 	}
 	// fmt.Println(imgddd.Bounds().Dx())
 	rgba := image.NewRGBA(image.Rect(0, 0,600, 800))
+	// println(imgddd)
 	draw.Draw(rgba, rgba.Bounds(), imgddd, image.ZP, draw.Src)
 	c := freetype.NewContext()
 
@@ -154,7 +164,7 @@ func genpic(picPath string, dstPath string) {
 	// fmt.Println(int(c.PointToFixed(*size)) >> 6)
 	// fmt.Println(len(text[0]))
 
-	pt := freetype.Pt(rgba.Bounds().Dx()-len(text[0])*16/2, 10+int(c.PointToFixed(*size)>>6))
+	pt := freetype.Pt(rgba.Bounds().Dx()-len(text[0])*20/2, 10+int(c.PointToFixed(*size)>>6))
 	for _, s := range text {
 		// de := 0
 		// if strings.Contains(s, "经度") {
@@ -164,15 +174,35 @@ func genpic(picPath string, dstPath string) {
 		// } else if strings.Contains(s, "方位角") {
 		//  de = 2
 		// }
-		fmt.Println(strings.Count(s, "")-1, len(s))
+		// fmt.Println(strings.Count(s, "")-1, len(s))
+		wt := 0
 		de := 0
 		if strings.Count(s, "")-1 != len(s) {
-			de = len(s) - (len(s)-strings.Count(s, "")+1)/2
+			// println(int(math.Ceil(*size)))
+			// println(c.PointToFixed(math.Ceil(*size))>>6)
+
+			de = len(s) - (len(s)-strings.Count(s, "")+1)/2 
+			if strings.Contains(s,"站点"){
+				wt = (len(s)-strings.Count(s, "")+1)/2-4
+			}
 		} else {
-			de = len(s)
+			de = len(s) + 1
+			if strings.Contains(s,"-"){
+				de = de -1
+			}else if !strings.Contains(s,":"){
+				wt = -5
+			}
+			if strings.Contains(s,"IMSI"){
+				de = de 
+			}
+
 		}
-		pt.X = c.PointToFixed(float64(rgba.Bounds().Dx() - de*16/2))
-		_, err = c.DrawString(s, pt)
+		pt.X = c.PointToFixed(float64(rgba.Bounds().Dx() - de*22/2 +wt))
+		a, err := c.DrawString(s, pt)
+		// if a != nil{
+		fmt.Println(s)
+		fmt.Println(a.X - a.Y)
+		// }
 		if err != nil {
 			log.Println(err)
 			return
@@ -198,6 +228,6 @@ func genpic(picPath string, dstPath string) {
 		log.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println("Wrote out.png OK.")
+	// fmt.Println("Wrote out.png OK.")
 
 }
